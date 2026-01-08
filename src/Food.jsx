@@ -1,45 +1,67 @@
 import React from "react";
 import IngredientsList from "./IngredientsList";
 import Recipe from "./Recipe";
+import { findRecipesByIngredients, getFullRecipe } from "./api/spoonacular";
 
 export default function Food() {
   const [ingredients, setIngredients] = React.useState([
-    "all the main spices",
     "pasta",
-    "ground beef",
-    "tomato paste",
+    "tomato",
+    "cheese",
+    "onion",
   ]);
-  const [recipeShown, setRecipeShown] = React.useState(false);
 
-  function toggleRecipeShown() {
-    setRecipeShown((prevShown) => !prevShown);
-  }
+  const [recipes, setRecipes] = React.useState([]);
+  const [selectedRecipe, setSelectedRecipe] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
 
   function addIngredient(formData) {
     const newIngredient = formData.get("ingredient");
-    setIngredients((prevIngredients) => [...prevIngredients, newIngredient]);
+    setIngredients((prev) => [...prev, newIngredient]);
+    setRecipes([]);
+    setSelectedRecipe(null);
+  }
+
+  async function getRecipes() {
+    setLoading(true);
+    const data = await findRecipesByIngredients(ingredients);
+    setRecipes(data);
+    setLoading(false);
+  }
+
+  async function viewFullRecipe(id) {
+    setLoading(true);
+    const fullRecipe = await getFullRecipe(id);
+    setSelectedRecipe(fullRecipe);
+    setLoading(false);
   }
 
   return (
     <main>
       <form action={addIngredient} className="add-ingredient-form">
-        <input
-          type="text"
-          placeholder="e.g. oregano"
-          aria-label="Add ingredient"
-          name="ingredient"
-        />
+        <input type="text" placeholder="e.g. oregano" name="ingredient" />
         <button>Add ingredient</button>
       </form>
 
-      {ingredients.length > 0 && (
-        <IngredientsList
-          ingredients={ingredients}
-          toggleRecipeShown={toggleRecipeShown}
-        />
+      <IngredientsList ingredients={ingredients} getRecipes={getRecipes} />
+
+      {loading && <p>Loading...</p>}
+
+      {recipes.length > 0 && (
+        <div className="recipe-grid">
+          {recipes.map((recipe) => (
+            <div key={recipe.id} className="recipe-card">
+              <h3>{recipe.title}</h3>
+              <img src={recipe.image} width="200" />
+              <button onClick={() => viewFullRecipe(recipe.id)}>
+                View Full Recipe
+              </button>
+            </div>
+          ))}
+        </div>
       )}
 
-      {recipeShown && <Recipe />}
+      {selectedRecipe && <Recipe recipe={selectedRecipe} />}
     </main>
   );
 }
