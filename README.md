@@ -77,10 +77,10 @@ git clone https://github.com/tanishka143-lang/ChefGPT.git
 cd chefgpt
 
 # Install dependencies
-npm install   # or pip install -r requirements.txt
+npm install   
 
 # Run the app
-npm start     # or python app.py
+npm run dev
 ```
 
 ---
